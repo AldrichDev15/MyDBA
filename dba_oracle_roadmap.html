@@ -1,0 +1,573 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+.roadmap { padding: 1rem 0; }
+.phase-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; cursor: pointer; user-select: none; }
+.phase-badge { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
+.phase-title { font-size: 15px; font-weight: 500; color: var(--color-text-primary); }
+.phase-duration { font-size: 12px; color: var(--color-text-tertiary); margin-left: auto; }
+.chevron { font-size: 12px; color: var(--color-text-tertiary); transition: transform 0.2s; }
+.chevron.open { transform: rotate(180deg); }
+.phase-block { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); margin-bottom: 10px; overflow: hidden; }
+.phase-block-header { padding: 12px 16px; display: flex; align-items: center; gap: 10px; cursor: pointer; background: var(--color-background-primary); }
+.phase-content { display: none; border-top: 0.5px solid var(--color-border-tertiary); }
+.phase-content.open { display: block; }
+.module { padding: 12px 16px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.module:last-child { border-bottom: none; }
+.module-title { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+.mod-num { font-size: 11px; font-weight: 500; padding: 1px 7px; border-radius: 20px; }
+.topics { list-style: none; display: flex; flex-direction: column; gap: 3px; }
+.topics li { font-size: 12px; color: var(--color-text-secondary); padding-left: 12px; position: relative; }
+.topics li::before { content: "·"; position: absolute; left: 2px; color: var(--color-text-tertiary); }
+.topics li a { color: var(--color-text-info); text-decoration: none; }
+.topics li a:hover { text-decoration: underline; }
+.status-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.status-pill { font-size: 11px; padding: 3px 10px; border-radius: 20px; display: flex; align-items: center; gap: 4px; }
+.dot { width: 7px; height: 7px; border-radius: 50%; }
+.progress-area { margin-bottom: 14px; }
+.prog-label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
+.prog-track { height: 5px; background: var(--color-background-tertiary); border-radius: 3px; overflow: hidden; }
+.prog-bar { height: 100%; border-radius: 3px; transition: width 0.5s; }
+.filter-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.filter-btn { font-size: 12px; padding: 4px 12px; border-radius: 20px; border: 0.5px solid var(--color-border-secondary); background: transparent; color: var(--color-text-secondary); cursor: pointer; transition: background 0.15s, color 0.15s; }
+.filter-btn.active { background: var(--color-text-primary); color: var(--color-background-primary); border-color: var(--color-text-primary); }
+</style>
+
+<div class="roadmap">
+  <div class="status-bar">
+    <span class="status-pill" style="background:var(--color-background-success);color:var(--color-text-success)"><span class="dot" style="background:var(--color-text-success)"></span>En curso</span>
+    <span class="status-pill" style="background:var(--color-background-warning);color:var(--color-text-warning)"><span class="dot" style="background:var(--color-text-warning)"></span>Próximo</span>
+    <span class="status-pill" style="background:var(--color-background-secondary);color:var(--color-text-secondary)"><span class="dot" style="background:var(--color-text-tertiary)"></span>Futuro</span>
+    <span class="status-pill" style="background:var(--color-background-info);color:var(--color-text-info)"><span class="dot" style="background:var(--color-text-info)"></span>Certificación</span>
+  </div>
+
+  <div class="filter-row">
+    <button class="filter-btn active" onclick="filterPhases('all',this)">Todas las fases</button>
+    <button class="filter-btn" onclick="filterPhases('oracle',this)">Oracle Core</button>
+    <button class="filter-btn" onclick="filterPhases('multidb',this)">Multi-DB</button>
+    <button class="filter-btn" onclick="filterPhases('cloud',this)">Cloud & DevOps</button>
+  </div>
+
+  <div id="phases-container"></div>
+</div>
+
+<script>
+const phases = [
+  {
+    id: "phase1",
+    tag: "oracle",
+    label: "Fase 1",
+    title: "Oracle Core — Instalación y arquitectura",
+    duration: "Meses 1–3",
+    color: "#185FA5",
+    bgColor: "var(--color-background-info)",
+    textColor: "var(--color-text-info)",
+    status: "current",
+    modules: [
+      {
+        num: "1.1",
+        title: "Instalación de Oracle 19c en OL 7.9",
+        topics: [
+          "Prerequisitos de SO: kernel params, swap, límites de usuario",
+          "Instalar Oracle Database 19c XE o EE",
+          "Configurar /etc/hosts, oracle user, oinstall/dba groups",
+          "Verificación post-instalación: listener, sqlplus, OEM",
+          "📖 <a href='https://oracle-base.com/articles/19c/oracle-db-19c-installation-on-oracle-linux-7' target='_blank'>Guía oracle-base.com: Oracle 19c en OL7</a>"
+        ]
+      },
+      {
+        num: "1.2",
+        title: "Arquitectura interna de Oracle",
+        topics: [
+          "Procesos background: SMON, PMON, DBWn, LGWR, CKPT, ARCn",
+          "SGA: Buffer Cache, Shared Pool, Redo Log Buffer, Large Pool",
+          "PGA: Stack Space, Sort Area, Hash Area",
+          "Arranque/parada: NOMOUNT → MOUNT → OPEN y cada fase",
+          "📖 <a href='https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/index.html' target='_blank'>Oracle 19c Concepts (doc oficial)</a>"
+        ]
+      },
+      {
+        num: "1.3",
+        title: "Storage: ficheros y estructuras lógicas",
+        topics: [
+          "Control files, redo log files, datafiles, temp files",
+          "Tablespaces: SYSTEM, SYSAUX, USERS, TEMP, UNDO",
+          "Segments, extents, data blocks — la jerarquía completa",
+          "Gestión: autoextend, bigfile tablespaces, OMF",
+          "Práctica: crear tablespace, mover datafiles online"
+        ]
+      },
+      {
+        num: "1.4",
+        title: "Gestión de usuarios y seguridad básica",
+        topics: [
+          "CREATE USER, ALTER USER, DROP USER",
+          "Roles predefinidos: DBA, CONNECT, RESOURCE",
+          "Privilegios de sistema vs objeto — GRANT / REVOKE",
+          "Profiles: límites de contraseña y recursos",
+          "Auditoría: AUDIT SESSION, AUDIT SELECT TABLE"
+        ]
+      }
+    ]
+  },
+  {
+    id: "phase2",
+    tag: "oracle",
+    label: "Fase 2",
+    title: "SQL avanzado y PL/SQL",
+    duration: "Meses 2–4",
+    color: "#185FA5",
+    bgColor: "var(--color-background-info)",
+    textColor: "var(--color-text-info)",
+    status: "current",
+    modules: [
+      {
+        num: "2.1",
+        title: "SQL avanzado específico de Oracle",
+        topics: [
+          "Analytic functions: ROW_NUMBER, RANK, LAG, LEAD, LISTAGG",
+          "Hierarchical queries: CONNECT BY, PRIOR, LEVEL, SYS_CONNECT_BY_PATH",
+          "Model clause y pivot/unpivot",
+          "Flashback queries: AS OF TIMESTAMP, VERSIONS BETWEEN",
+          "📖 <a href='https://livesql.oracle.com' target='_blank'>Oracle Live SQL — practica online sin instalar nada</a>"
+        ]
+      },
+      {
+        num: "2.2",
+        title: "PL/SQL — procedimientos y packages",
+        topics: [
+          "Bloques anónimos, procedures, functions, packages",
+          "Cursores: implícitos, explícitos, REF CURSOR",
+          "Manejo de excepciones: predefinidas y de usuario",
+          "Triggers: BEFORE/AFTER, INSTEAD OF, compound triggers",
+          "DBMS_OUTPUT, UTL_FILE, UTL_MAIL — packages de sistema clave",
+          "📖 <a href='https://oracle-base.com/articles/misc/introduction-to-plsql' target='_blank'>oracle-base.com: PL/SQL desde cero</a>"
+        ]
+      },
+      {
+        num: "2.3",
+        title: "🏆 Certificación: Oracle SQL (1Z0-071)",
+        topics: [
+          "Examen: ~73 preguntas, 120 min, nota mínima 63%",
+          "Precio: ~245 USD — busca vouchers en oracle.com",
+          "📖 <a href='https://mylearn.oracle.com/ou/exam/oracle-database-sql/42029/79149-sql' target='_blank'>MyLearn Oracle — exam guide oficial</a>",
+          "📖 <a href='https://www.udemy.com/course/oracle-sql-12c-become-an-sql-developer-with-projects/' target='_blank'>Udemy: Oracle SQL curso práctico (espera oferta a 9€)</a>"
+        ]
+      }
+    ]
+  },
+  {
+    id: "phase3",
+    tag: "oracle",
+    label: "Fase 3",
+    title: "Backup, Recovery y RMAN",
+    duration: "Meses 3–5",
+    color: "#185FA5",
+    bgColor: "var(--color-background-info)",
+    textColor: "var(--color-text-info)",
+    status: "next",
+    modules: [
+      {
+        num: "3.1",
+        title: "Conceptos de backup en Oracle",
+        topics: [
+          "Modos ARCHIVELOG vs NOARCHIVELOG — cuándo usar cada uno",
+          "Tipos de backup: full, incremental level 0/1, differential, cumulative",
+          "Consistent vs inconsistent backups",
+          "Flash Recovery Area (FRA): configuración y gestión",
+          "SCN, checkpoint, recovery point objective (RPO)"
+        ]
+      },
+      {
+        num: "3.2",
+        title: "RMAN — Recovery Manager en profundidad",
+        topics: [
+          "Configuración RMAN: CONFIGURE RETENTION, CHANNEL, FORMAT",
+          "BACKUP DATABASE, BACKUP ARCHIVELOG ALL",
+          "Catálogo RMAN vs controlfile — ventajas de cada uno",
+          "CROSSCHECK, DELETE OBSOLETE, LIST/REPORT NEED BACKUP",
+          "DUPLICATE — clonar base de datos (crítico para freelance)",
+          "📖 <a href='https://oracle-base.com/articles/9i/recovery-manager-overview-9i' target='_blank'>oracle-base.com: RMAN completo</a>"
+        ]
+      },
+      {
+        num: "3.3",
+        title: "Recovery — escenarios reales",
+        topics: [
+          "Recover datafile perdido (modo ARCHIVELOG)",
+          "Recover tablespace sin cerrar la base de datos",
+          "Incomplete recovery: UNTIL TIME, UNTIL SCN, UNTIL SEQUENCE",
+          "Flashback Database: configurar y usar — alternativa a recovery",
+          "Práctica: rota un datafile y recupéralo tú mismo en el lab"
+        ]
+      }
+    ]
+  },
+  {
+    id: "phase4",
+    tag: "oracle",
+    label: "Fase 4",
+    title: "Performance Tuning Oracle",
+    duration: "Meses 5–9",
+    color: "#185FA5",
+    bgColor: "var(--color-background-info)",
+    textColor: "var(--color-text-info)",
+    status: "future",
+    modules: [
+      {
+        num: "4.1",
+        title: "Optimizer y planes de ejecución",
+        topics: [
+          "Cost-Based Optimizer (CBO): cómo estima coste",
+          "EXPLAIN PLAN FOR + SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY)",
+          "AUTOTRACE en SQLPlus: interpretar statistics",
+          "Operaciones: TABLE ACCESS FULL, INDEX RANGE SCAN, HASH JOIN, NESTED LOOPS",
+          "Hints: /*+ INDEX */ /*+ FULL */ /*+ USE_NL */ — cuándo y cómo"
+        ]
+      },
+      {
+        num: "4.2",
+        title: "Índices y estadísticas",
+        topics: [
+          "B-Tree, Bitmap, Function-Based, Invisible, Composite — cuándo usar cada uno",
+          "DBMS_STATS: recoger estadísticas, histogramas, pendientes",
+          "Índices: monitoring usage, rebuild, coalesce, shrink",
+          "Particionamiento de tablas: range, list, hash, composite",
+          "Índices en tablas particionadas: local vs global"
+        ]
+      },
+      {
+        num: "4.3",
+        title: "AWR, ASH y ADDM",
+        topics: [
+          "AWR: qué guarda, cómo generar informes, interpretar Top SQL",
+          "ASH (Active Session History): analizar cuellos de botella en tiempo real",
+          "ADDM: Automatic Database Diagnostic Monitor — recomendaciones automáticas",
+          "Wait events clave: db file sequential read, latch free, log file sync",
+          "📖 <a href='https://oracle-base.com/articles/10g/automatic-workload-repository-10g' target='_blank'>oracle-base.com: AWR & ADDM</a>"
+        ]
+      },
+      {
+        num: "4.4",
+        title: "🏆 Certificaciones OCP 19c (1Z0-082 + 1Z0-083)",
+        topics: [
+          "1Z0-082: Database Administration I — arquitectura, storage, usuarios, backup",
+          "1Z0-083: Database Administration II — tuning, HA, Data Guard, Multitenant",
+          "Precio: ~245 USD cada examen",
+          "📖 <a href='https://mylearn.oracle.com' target='_blank'>MyLearn Oracle — rutas de estudio oficiales</a>",
+          "📖 <a href='https://www.dumpscollection.net' target='_blank'>Practice tests (complementa con doc oficial, no sustituyas)</a>"
+        ]
+      }
+    ]
+  },
+  {
+    id: "phase5",
+    tag: "oracle",
+    label: "Fase 5",
+    title: "Alta disponibilidad Oracle",
+    duration: "Meses 9–16",
+    color: "#185FA5",
+    bgColor: "var(--color-background-info)",
+    textColor: "var(--color-text-info)",
+    status: "future",
+    modules: [
+      {
+        num: "5.1",
+        title: "Oracle Data Guard",
+        topics: [
+          "Arquitectura: primary, physical standby, logical standby",
+          "Modos de protección: Maximum Availability, Performance, Protection",
+          "Configurar standby desde cero con RMAN DUPLICATE FROM ACTIVE",
+          "Switchover vs Failover: procedimientos y cuándo usar cada uno",
+          "Data Guard Broker: DGMGRL — automatizar switchover",
+          "📖 <a href='https://oracle-base.com/articles/12c/data-guard-setup-using-broker-12cr1' target='_blank'>oracle-base.com: Data Guard con Broker</a>"
+        ]
+      },
+      {
+        num: "5.2",
+        title: "Oracle RAC (Real Application Clusters)",
+        topics: [
+          "Arquitectura RAC: instancias múltiples, una sola DB en ASM",
+          "Clusterware: OCR, Voting Disk, CRS daemons",
+          "ASM (Automatic Storage Management): disk groups, failure groups",
+          "Cache Fusion: cómo se comparte el buffer cache entre nodos",
+          "Lab: <a href='https://github.com/oracle/vagrant-projects/tree/main/OracleRAC' target='_blank'>Oracle RAC con Vagrant en tu servidor OL7</a>"
+        ]
+      },
+      {
+        num: "5.3",
+        title: "Multitenant (CDB/PDB)",
+        topics: [
+          "Arquitectura: Container DB, Pluggable DB, Root, Seed",
+          "Crear, conectar, clonar y mover PDBs",
+          "Backup y recovery en entornos Multitenant",
+          "Resource Manager en CDB/PDB",
+          "Importancia: desde Oracle 21c toda DB es Multitenant"
+        ]
+      }
+    ]
+  },
+  {
+    id: "phase6",
+    tag: "multidb",
+    label: "Fase 6",
+    title: "PostgreSQL — el segundo pilar",
+    duration: "Meses 8–14",
+    color: "#336791",
+    bgColor: "var(--color-background-secondary)",
+    textColor: "var(--color-text-secondary)",
+    status: "future",
+    modules: [
+      {
+        num: "6.1",
+        title: "PostgreSQL Core Administration",
+        topics: [
+          "Instalación en OL7: repo PGDG, configurar postgresql.conf y pg_hba.conf",
+          "Arquitectura: postmaster, shared buffers, WAL, autovacuum",
+          "psql: comandos \\d, \\l, \\c, \\copy, \\timing",
+          "Roles, schemas, tablespaces — diferencias con Oracle",
+          "📖 <a href='https://www.postgresql.org/docs/current/' target='_blank'>Documentación oficial PostgreSQL</a>"
+        ]
+      },
+      {
+        num: "6.2",
+        title: "Backup y HA en PostgreSQL",
+        topics: [
+          "pg_dump, pg_dumpall, pg_restore — opciones clave",
+          "pg_basebackup + WAL archiving — equivalente a RMAN",
+          "Streaming Replication: primary/replica en 30 min",
+          "pgBackRest: herramienta de backup avanzada (apréndela, es lo que piden)",
+          "Patroni: HA automático con failover — muy demandado en sector público"
+        ]
+      },
+      {
+        num: "6.3",
+        title: "Tuning PostgreSQL",
+        topics: [
+          "EXPLAIN ANALYZE: leer planes, identificar Seq Scans innecesarios",
+          "pg_stat_statements: qué queries consumen más",
+          "Parámetros clave: work_mem, effective_cache_size, checkpoint_completion_target",
+          "VACUUM, AUTOVACUUM, ANALYZE — gestión del bloat",
+          "Índices en PG: BRIN, GIN, GiST — cuándo usar cada uno"
+        ]
+      },
+      {
+        num: "6.4",
+        title: "Migraciones Oracle → PostgreSQL",
+        topics: [
+          "Herramientas: ora2pg (la estándar en España), AWS SCT",
+          "Diferencias clave: secuencias vs identity, DATE, NVL→COALESCE, ROWNUM→LIMIT",
+          "Convertir PL/SQL a PL/pgSQL — las trampas comunes",
+          "📖 <a href='https://ora2pg.darold.net/documentation.html' target='_blank'>ora2pg: documentación oficial</a>",
+          "⭐ Nicho muy rentable: sector público español migra masivamente de Oracle a PG"
+        ]
+      }
+    ]
+  },
+  {
+    id: "phase7",
+    tag: "multidb",
+    label: "Fase 7",
+    title: "SQL Server y MySQL básico",
+    duration: "Meses 13–18",
+    color: "#555",
+    bgColor: "var(--color-background-secondary)",
+    textColor: "var(--color-text-secondary)",
+    status: "future",
+    modules: [
+      {
+        num: "7.1",
+        title: "SQL Server para DBA que viene de Oracle",
+        topics: [
+          "Arquitectura: instancias, databases, schemas — diferencias clave",
+          "SQL Server Agent: jobs, alerts, operadores",
+          "Always On Availability Groups — equivalente a Data Guard",
+          "SSMS y Azure Data Studio — herramientas de administración",
+          "📖 <a href='https://learn.microsoft.com/en-us/sql/sql-server/' target='_blank'>Microsoft Learn SQL Server (gratis y excelente)</a>"
+        ]
+      },
+      {
+        num: "7.2",
+        title: "🏆 Certificación DP-300 — Azure SQL Admin",
+        topics: [
+          "Azure SQL Database, Managed Instance, SQL on VMs",
+          "Precio: ~165 USD — muy demandado en sector público con Azure",
+          "📖 <a href='https://learn.microsoft.com/en-us/certifications/exams/dp-300/' target='_blank'>Microsoft Learn: ruta DP-300</a>"
+        ]
+      },
+      {
+        num: "7.3",
+        title: "MySQL/MariaDB esencial",
+        topics: [
+          "Instalación, configuración my.cnf, usuarios y privilegios",
+          "Motores InnoDB vs MyISAM — cuándo importa",
+          "Replicación master/slave y GTID replication",
+          "mysqldump, xtrabackup — backup y recovery",
+          "📖 <a href='https://dev.mysql.com/doc/' target='_blank'>MySQL Documentation oficial</a>"
+        ]
+      }
+    ]
+  },
+  {
+    id: "phase8",
+    tag: "cloud",
+    label: "Fase 8",
+    title: "Cloud y Oracle Cloud Infrastructure",
+    duration: "Meses 14–20",
+    color: "#0F6E56",
+    bgColor: "var(--color-background-success)",
+    textColor: "var(--color-text-success)",
+    status: "future",
+    modules: [
+      {
+        num: "8.1",
+        title: "🏆 OCI Foundations (gratuita)",
+        topics: [
+          "Compartments, VCN, Security Lists, IAM",
+          "Compute, Object Storage, Block Volume",
+          "Examen gratuito: Oracle Cloud Infrastructure Foundations",
+          "📖 <a href='https://mylearn.oracle.com/ou/learning-path/become-an-oci-foundations-associate/122043' target='_blank'>OCI Foundations Learning Path (gratis)</a>"
+        ]
+      },
+      {
+        num: "8.2",
+        title: "Autonomous Database en OCI",
+        topics: [
+          "ATP (Transaction Processing) vs ADW (Data Warehouse)",
+          "Administración: escalado automático, backup gestionado",
+          "Conexión con wallet, SQLPlus, SQL Developer",
+          "Migración de base de datos on-premise a ATP con Data Pump",
+          "📖 <a href='https://cloud.oracle.com/free' target='_blank'>Oracle Always Free Tier — 2 ATP incluidas</a>"
+        ]
+      },
+      {
+        num: "8.3",
+        title: "AWS para DBA — RDS y Aurora",
+        topics: [
+          "RDS Oracle, PostgreSQL, MySQL — diferencias con on-premise",
+          "Aurora: arquitectura distribuida, failover automático",
+          "Parameter Groups, Option Groups, Maintenance Windows",
+          "DMS (Database Migration Service): migrar a RDS",
+          "📖 <a href='https://aws.amazon.com/training/digital/aws-cloud-practitioner-essentials/' target='_blank'>AWS Cloud Practitioner Essentials (gratis)</a>"
+        ]
+      },
+      {
+        num: "8.4",
+        title: "🏆 AWS Database Specialty (DBS-C01)",
+        topics: [
+          "La certificación más demandada en freelance internacional",
+          "Cubre RDS, Aurora, DynamoDB, ElastiCache, Redshift, Neptune",
+          "Precio: ~300 USD",
+          "📖 <a href='https://aws.amazon.com/certification/certified-database-specialty/' target='_blank'>AWS: Database Specialty exam guide</a>"
+        ]
+      }
+    ]
+  },
+  {
+    id: "phase9",
+    tag: "cloud",
+    label: "Fase 9",
+    title: "DevOps para DBA",
+    duration: "Meses 18–24",
+    color: "#0F6E56",
+    bgColor: "var(--color-background-success)",
+    textColor: "var(--color-text-success)",
+    status: "future",
+    modules: [
+      {
+        num: "9.1",
+        title: "Git y scripting para DBA",
+        topics: [
+          "Git: init, clone, branch, merge, PR — flujo básico",
+          "Bash scripting avanzado: loops, funciones, manejo de errores",
+          "Automatizar backups RMAN con scripts Bash + cron",
+          "Monitorización: script que revisa espacio, sesiones bloqueadas, errores en alert.log",
+          "📖 <a href='https://github.com' target='_blank'>Crea tu cuenta GitHub y sube tus scripts</a>"
+        ]
+      },
+      {
+        num: "9.2",
+        title: "Docker para DBA",
+        topics: [
+          "Conceptos: imágenes, contenedores, volúmenes, redes",
+          "Levantar Oracle XE en Docker: gvenzl/oracle-xe",
+          "Levantar PostgreSQL + pgAdmin en docker-compose",
+          "Entornos de prueba desechables: levanta una DB, prueba, destruye",
+          "📖 <a href='https://hub.docker.com/r/gvenzl/oracle-xe' target='_blank'>DockerHub: Oracle XE imagen oficial gvenzl</a>"
+        ]
+      },
+      {
+        num: "9.3",
+        title: "Terraform e IaC para bases de datos",
+        topics: [
+          "Conceptos: providers, resources, state, plan, apply",
+          "Provisionar RDS PostgreSQL en AWS con Terraform",
+          "Provisionar ATP en OCI con Terraform OCI provider",
+          "Módulos reutilizables para infraestructura de BD",
+          "📖 <a href='https://developer.hashicorp.com/terraform/tutorials' target='_blank'>HashiCorp: tutoriales Terraform (gratis)</a>"
+        ]
+      }
+    ]
+  }
+];
+
+let activeFilter = 'all';
+
+function filterPhases(tag, btn) {
+  activeFilter = tag;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderPhases();
+}
+
+function togglePhase(id) {
+  const content = document.getElementById('content-' + id);
+  const chevron = document.getElementById('chevron-' + id);
+  if (content.classList.contains('open')) {
+    content.classList.remove('open');
+    chevron.classList.remove('open');
+  } else {
+    content.classList.add('open');
+    chevron.classList.add('open');
+  }
+}
+
+function renderPhases() {
+  const container = document.getElementById('phases-container');
+  const filtered = activeFilter === 'all' ? phases : phases.filter(p => p.tag === activeFilter);
+  container.innerHTML = filtered.map(phase => {
+    const statusStyle = phase.status === 'current' 
+      ? 'background:var(--color-background-success);color:var(--color-text-success)'
+      : phase.status === 'next'
+      ? 'background:var(--color-background-warning);color:var(--color-text-warning)'
+      : 'background:var(--color-background-secondary);color:var(--color-text-tertiary)';
+    const statusLabel = phase.status === 'current' ? 'Empezar ya' : phase.status === 'next' ? 'Próximo' : 'Futuro';
+    
+    return `
+    <div class="phase-block">
+      <div class="phase-block-header" onclick="togglePhase('${phase.id}')">
+        <span class="phase-badge" style="${statusStyle}">${phase.label}</span>
+        <span class="phase-title">${phase.title}</span>
+        <span class="phase-duration">${phase.duration}</span>
+        <span class="chevron" id="chevron-${phase.id}">▾</span>
+      </div>
+      <div class="phase-content" id="content-${phase.id}">
+        ${phase.modules.map(mod => `
+          <div class="module">
+            <div class="module-title">
+              <span class="mod-num" style="${statusStyle}">${mod.num}</span>
+              ${mod.title}
+            </div>
+            <ul class="topics">
+              ${mod.topics.map(t => `<li>${t}</li>`).join('')}
+            </ul>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+renderPhases();
+</script>
