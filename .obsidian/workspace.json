@@ -1,0 +1,196 @@
+{
+  "main": {
+    "id": "641c8dd795495e10",
+    "type": "split",
+    "children": [
+      {
+        "id": "464150ac1770f93d",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "38617e4163e597a7",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "DBA_NOTES/MEMORY ARCHITECTURE.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "MEMORY ARCHITECTURE"
+            }
+          },
+          {
+            "id": "1cbbe592c1e07b96",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "DBA_NOTES/INSTANCIAS.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "INSTANCIAS"
+            }
+          }
+        ],
+        "currentTab": 1
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "830b750bbb447f87",
+    "type": "split",
+    "children": [
+      {
+        "id": "ebcab888b517e3ca",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "56f22952089ded7b",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Explorador de archivos"
+            }
+          },
+          {
+            "id": "250dbe077996083a",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": " ",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Buscar"
+            }
+          },
+          {
+            "id": "ecd1907732525036",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ],
+        "currentTab": 1
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "fb84bc68baa34d14",
+    "type": "split",
+    "children": [
+      {
+        "id": "841b7f6b19b0ef6d",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "1497906b28711567",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "DBA_NOTES/INSTANCIAS.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Enlaces entrantes de INSTANCIAS"
+            }
+          },
+          {
+            "id": "568a5cf94f499e83",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "DBA_NOTES/INSTANCIAS.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Enlaces salientes de INSTANCIAS"
+            }
+          },
+          {
+            "id": "7ad4b8119d31abfc",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Etiquetas"
+            }
+          },
+          {
+            "id": "e51109c52e512f4a",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "DBA_NOTES/INSTANCIAS.md",
+                "followCursor": true,
+                "showSearch": true,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Esquema de INSTANCIAS"
+            }
+          }
+        ],
+        "currentTab": 3
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Abrir selector rápido": false,
+      "graph:Abrir vista gráfica": false,
+      "canvas:Crear nuevo lienzo": false,
+      "daily-notes:Abrir la nota de hoy": false,
+      "templates:Insertar plantilla": false,
+      "command-palette:Abrir paleta de comandos": false,
+      "bases:Crear nueva base": false
+    }
+  },
+  "active": "250dbe077996083a",
+  "lastOpenFiles": [
+    "DBA_NOTES/INSTALLATION.md",
+    "DBA_NOTES/ARQUITECTURA DE MEMORIA.md",
+    "DBA_NOTES/INSTANCIAS.md",
+    "SGA.md",
+    "Roadmap_DBA_Oracle_Junior_a_Experto.pdf"
+  ]
+}

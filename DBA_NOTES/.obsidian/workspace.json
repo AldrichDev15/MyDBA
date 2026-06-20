@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "7c7699cdeec54dc1",
+        "id": "ac3e08bea751b953",
         "type": "tabs",
         "children": [
           {
-            "id": "03ca0ee377ea1618",
+            "id": "2bbc7ec8a070db92",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -90,6 +90,7 @@
             "state": {
               "type": "backlink",
               "state": {
+                "file": "INSTALLATION.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -99,7 +100,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Enlaces entrantes"
+              "title": "Enlaces entrantes de INSTALLATION"
             }
           },
           {
@@ -108,11 +109,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
+                "file": "INSTALLATION.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Enlaces salientes"
+              "title": "Enlaces salientes de INSTALLATION"
             }
           },
           {
@@ -150,12 +152,13 @@
             "state": {
               "type": "outline",
               "state": {
+                "file": "INSTALLATION.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Esquema"
+              "title": "Esquema de INSTALLATION"
             }
           }
         ]
@@ -176,7 +179,7 @@
       "bases:Crear nueva base": false
     }
   },
-  "active": "03ca0ee377ea1618",
+  "active": "2bbc7ec8a070db92",
   "lastOpenFiles": [
     "INSTALLATION.md",
     "installation.MD",
