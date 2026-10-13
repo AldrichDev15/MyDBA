@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "DBA_NOTES/ARQUITECTURA DE MEMORIA.md",
+                "file": "ROADMAP_ORA_IBM.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "ARQUITECTURA DE MEMORIA"
+              "title": "ROADMAP_ORA_IBM"
             }
           }
         ]
@@ -142,13 +142,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "DBA_NOTES/ARQUITECTURA DE MEMORIA.md",
+                "file": "ROADMAP_ORA_IBM.md",
                 "followCursor": true,
                 "showSearch": true,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Esquema de ARQUITECTURA DE MEMORIA"
+              "title": "Esquema de ROADMAP_ORA_IBM"
             }
           }
         ],
@@ -169,13 +169,15 @@
       "bases:Crear nueva base": false
     }
   },
-  "active": "12eea1f7cf7a7b6a",
+  "active": "56f22952089ded7b",
   "lastOpenFiles": [
+    "Roadmap_DBA_ORA.pdf",
+    "DBA_NOTES/INSTANCIAS.md",
+    "DBA_NOTES/ARQUITECTURA DE MEMORIA.md",
+    "ROADMAP_ORA_IBM.md",
     "DBA_PROJECTS/INSTALLATION.md",
     "DBA_REPO",
     "DBA_PROJECTS",
-    "DBA_NOTES/ARQUITECTURA DE MEMORIA.md",
-    "DBA_NOTES/INSTANCIAS.md",
     "Roadmap_DBA_Oracle_Junior_a_Experto.pdf",
     "Checkpoint Position in Online Redo Log.md",
     "Pasted image 20260707222055.png",
