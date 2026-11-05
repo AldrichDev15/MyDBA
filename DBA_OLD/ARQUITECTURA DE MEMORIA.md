@@ -153,4 +153,4 @@ Con `ALTER TABLE ... STORAGE (BUFFER_POOL KEEP)` se puede indicar que los bloque
 
 Se recomienda usar `FORCE FULL DATABASE CACHING` únicamente cuando la DB buffer cache de cada instancia sea mayor que el tamaño de la base de datos, de forma que esta pueda mantenerse prácticamente completa en memoria (aplica tanto a RAC como a _single instance_). En RAC, cuando la carga de trabajo está bien distribuida entre instancias, también puede utilizarse si la suma de las cachés de todas las instancias (dejando margen para bloques duplicados) supera el tamaño de la base de datos.
 
-###  Reo Log Buffer
+###  Redo Log Buffer

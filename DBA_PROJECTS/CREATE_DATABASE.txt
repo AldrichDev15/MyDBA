@@ -1,0 +1,182 @@
+#==================================================
+# CREACIÓN DE DB USANDO DIFERENTES MÉTODOS
+#==================================================
+#**************************************************
+# 1) CONTEXTO Y ENTORNO 
+#**************************************************
+# Vamos a crear una DB en una máquina virtual Oracle
+# Linux Server v8.10. Los recursos que le daremos a
+# dicha máquina virtual serán los siguientes:
+# - 3052M de memoria RAM.
+# - 3 CPUs.
+# - 200G de disco.
+# Hemos instalado Oracle Database 19c en la máquina
+# siguiendo los pasos del proceso de instalación oficial.
+# Una vez lo tenemos instalado, procedemos a la creación
+# de una DB.
+# Para acceder a la VM, hemos configurado una regla NAT
+# que redirige el puerto 2222 de nuestro host al ssh de 
+# la VM (puerto 22). Por lo tanto, ejecutaremos
+ssh -p 2222 oracle@localhost
+#**************************************************
+# 2) CREACIÓN DE UNA INSTANCIA MANUAL [1]
+#**************************************************
+# Para crear la instancia manual, usamos el comando 
+"SQL> CREATE DATABASE"
+# Vamos a ver su alcance. En este caso, NO vamos a 
+# configurar ASM. 
+#--------------------------------------------------
+# 2.1 ) ESTABLECER ORACLE_SID
+#--------------------------------------------------
+# El primer paso que se indica es elegir un nombre para
+# la variable ORACLE_SID. En nuestro caso, se llamará
+# ORCLCDB.
+# Vamos a crear un directorio ENV en el home del usuario 
+# oracle y en él, añadiremos los archivos de entorno para
+# DB que creeemos.
+mkdir -p ~/ENV
+vi ~/ENV/ORCLCDB.env
+ # DB PARAMS
+ export ORACLE_SID=ORCLCDB
+
+ # OTHERS
+ export PS1="\u[$ORACLE_SID] \w>"
+#
+#--------------------------------------------------
+# 2.2 ) MÉTODO DE AUTENTICACIÓN [2]
+#--------------------------------------------------
+# El siguiente paso trata sobre los métodos de autenticación.
+# En nuestro caso, siempre vamos a poder entrar desde el
+# OS como usuario oracle (quién ya tiene privilegio de SYSDBA),
+# pero vamos a crear un fichero de contraseña aún así.
+# Utilizaremos la utilidad ORAPWD. Este comando crea y 
+# mantiene un archivo de contraseñas.
+orapwd file=$ORACLE_HOME/dbs/orapw$ORACLE_SID \
+    FORCE=y \
+    FORMAT=12.2 \
+    SYS=password \
+# 
+#--------------------------------------------------
+# 2.3 ) CREACIÓN DEL PFILE
+#--------------------------------------------------
+# Estamos listos para crear el PFILE de nuestra DB. Creamos
+# un PFILE porque aún no podemos generar un SPFILE al no 
+# tener la DB creada.
+# El fichero estará en $ORACLE_HOME/dbs/init$ORACLE_SID.ora.
+vi $ORACLE_HOME/dbs/initORCLCDB.ora
+
+ db_name='ORCLCDB'
+ memory_target=1G
+ processes = 150
+ db_block_size=8192
+ db_domain=''
+ db_recovery_file_dest='/u03/fast_recovery_area'
+ db_recovery_file_dest_size=30G
+ diagnostic_dest='/u01/app/oracle'
+ dispatchers='(PROTOCOL=TCP) (SERVICE=SRVORCLCDB)'
+ open_cursors=300
+ enable_pluggable_database=true
+ remote_login_passwordfile='EXCLUSIVE'
+ undo_tablespace='UNDOTBS1'
+ # You may want to ensure that control files are created on separate physical
+ # devices
+ control_files = (/u01/ctrlf/control01.ctl, /u02/ctrlf/control02.ctl)
+ compatible ='12.0.0'
+#
+# Este PFILE es mínimo, ya lo iré mejorando
+#--------------------------------------------------
+# 2.4 ) CONEXIÓN A LA INSTANCIA Y SPFILE
+#--------------------------------------------------
+# Con las variables de entorno correctamente asignadas
+su - oracle
+source ~/ENV/ORCLCDB.env
+sqlplus /nolog
+SQL> CONNECT / AS SYSDBA
+
+ Connected to an idle instance.
+#
+# Creamos un SPFILE con el PFILE que teníamos.
+# Se crea en la ruta por defecto "$ORACLE_HOME/dbs/spfileORCLCDB.ora".
+# 
+SQL> CREATE SPFILE FROM PFILE='/u01/app/oracle/product/19.0.0/dbhome_1/dbs/initORCLCDB.ora';
+
+ File created.
+
+SQL> SELECT INSTANCE_NAME,DATABASE_STATUS,STATUS FROM V$INSTANCE;
+
+ INSTANCE_NAME    DATABASE_STATUS   STATUS
+ ---------------- ----------------- ------------
+ ORCLCDB          ACTIVE            STARTED
+
+# En este punto la memoria está asignada y los procesos 
+# levantados, pero la DB en sí no existe.
+#--------------------------------------------------
+# 2.5 ) CREACIÓN DE LA DB
+#--------------------------------------------------
+CREATE DATABASE ORCLCDB
+   USER SYS IDENTIFIED BY "0R4C|34DM1N"
+   USER SYSTEM IDENTIFIED BY "ORASYSTEM"
+   LOGFILE GROUP 1 ('/u03/online_redo/redo01a.log') SIZE 100M BLOCKSIZE 512,
+           GROUP 2 ('/u03/online_redo/redo02a.log') SIZE 100M BLOCKSIZE 512,
+           GROUP 3 ('/u03/online_redo/redo03a.log') SIZE 100M BLOCKSIZE 512
+   MAXLOGHISTORY 100
+   MAXLOGFILES 16
+   MAXLOGMEMBERS 3
+   MAXDATAFILES 1024
+   CHARACTER SET AL32UTF8
+   NATIONAL CHARACTER SET AL16UTF16
+   EXTENT MANAGEMENT LOCAL
+   DATAFILE '/u02/oradata/ORCLCDB/system01.dbf'
+     SIZE 700M REUSE AUTOEXTEND ON NEXT 100M MAXSIZE 15G
+   SYSAUX DATAFILE '/u02/oradata/ORCLCDB/sysaux01.dbf'
+     SIZE 550M REUSE AUTOEXTEND ON NEXT 100M MAXSIZE 15G
+   DEFAULT TABLESPACE users
+      DATAFILE '/u02/oradata/ORCLCDB/users01.dbf'
+      SIZE 500M REUSE AUTOEXTEND ON NEXT 100M MAXSIZE 10G
+   DEFAULT TEMPORARY TABLESPACE tempts1
+      TEMPFILE '/u02/oradata/ORCLCDB/temp01.dbf'
+      SIZE 200M REUSE AUTOEXTEND ON NEXT 640K MAXSIZE 15G
+   UNDO TABLESPACE undotbs1
+      DATAFILE '/u02/oradata/ORCLCDB/undotbs01.dbf'
+      SIZE 200M REUSE AUTOEXTEND ON NEXT 5120K MAXSIZE 15G
+    ENABLE PLUGGABLE DATABASE
+      SEED
+      FILE_NAME_CONVERT =
+      ('/u02/oradata/ORCLCDB/',
+       '/u02/oradata/ORCLCDB/pdbseed/');
+
+  Database created.
+
+# CUIDADO: Las contraseñas son case-sensitive.
+# CUIDADO: Este comando NO crea directorios, deben 
+# existir previamente. Si el comando fallase, debemos 
+# borrar todo lo que haya creado la anterior ejecución.
+# NOTA: Para ver las trazas, ejecutar
+SQL> SELECT * FROM V$DIAG_INFO;
+# Y para el alert_<SID>.log, fijarnos en el NAME='Default Trace File'.
+  /u01/app/oracle/diag/rdbms/orclcdb/ORCLCDB/alert
+# Vamos a poner un atajo que nos muestre las últimas líneas
+# de este fichero en las variables de entorno de esta DB.
+vi ~/ENV/ORCLCDB.env
+  alias check_alert='tail -f /u01/app/oracle/diag/rdbms/orclcdb/ORCLCDB/trace/alert_ORCLCDB.log'
+  alias sysdba='sqlplus / as sysdba'
+# Ya que estamos, vamos a crear un par de tablespaces para empezar.
+SQL> CREATE TABLESPACE LAB_D LOGGING DATAFILE '/u02/oradata/ORCLCDB/LAB_D.dbf' SIZE 1G AUTOEXTEND ON NEXT 10M MAXSIZE 5G;
+  
+  Tablespace created.
+
+SQL> CREATE TABLESPACE LAB_I LOGGING DATAFILE '/u02/oradata/ORCLCDB/LAB_I.dbf' SIZE 1G AUTOEXTEND ON NEXT 10M MAXSIZE 2G;
+  
+  Tablespace created.
+#--------------------------------------------------
+# 2.6 ) EJECUCIÓN DE SCRIPTS 
+#--------------------------------------------------
+# Necesitamos ejecutar una serie de scripts para crear algunas vistas, PL/SQL y sinonimos
+# del diccionario de datos y el correcto funcionamiento de SQL*Plus.
+SQL> @?/rdbms/admin/catalog.sql
+SQL> @?/rdbms/admin/catproc.sql
+# 
+#==================================================
+# BIBLIOGRAFÍA
+# [1] https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/creating-and-configuring-an-oracle-database.html#GUID-0306126A-D63C-41E0-8D6E-48020FC18697
+# [2] https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/getting-started-with-database-administration.html#GUID-26EC8D1B-7A2F-4F0A-9588-D92CBD610858

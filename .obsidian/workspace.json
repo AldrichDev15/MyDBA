@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "DBA_NOTES/1Z0-83/PARTE I. ARQUITECTURA MULTITENANT.md",
+                "file": "DBA_NOTES/INSTANCIAS.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "PARTE I. ARQUITECTURA MULTITENANT"
+              "title": "INSTANCIAS"
             }
           }
         ]
@@ -174,15 +174,16 @@
   },
   "active": "3cd5f9a8cef59c12",
   "lastOpenFiles": [
+    "DBA_PROJECTS/CREACIÓN DB.md",
+    "DBA_NOTES/INSTANCIAS.md",
+    "DBA_NOTES/ARQUITECTURA DE MEMORIA.md",
     "DBA_NOTES/1Z0-83/TEMAS Y RECURSOS.md",
     "DBA_NOTES/1Z0-83/PARTE I. ARQUITECTURA MULTITENANT.md",
-    "DBA_NOTES/1Z0-83/Exam Dump 1Z0-083.pdf",
     "DBA_PROJECTS/INSTALLATION.md",
+    "DBA_NOTES/1Z0-83/Exam Dump 1Z0-083.pdf",
     "[Managing.md",
     "ROADMAP_ORA_IBM.md",
     "DBA_NOTES/1Z0-83",
-    "DBA_NOTES/ARQUITECTURA DE MEMORIA.md",
-    "DBA_NOTES/INSTANCIAS.md",
     "Roadmap_DBA_ORA.pdf",
     "DBA_REPO",
     "DBA_PROJECTS",
