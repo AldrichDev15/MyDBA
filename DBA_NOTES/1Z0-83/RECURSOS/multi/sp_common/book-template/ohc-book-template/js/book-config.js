@@ -1,0 +1,1 @@
+function isIE(){return/msie\s|trident\/|edge\//i.test(window.navigator.userAgent)}requirejs([isIE()?"../../../../../sp_common/book-template/ohc-book-template/js/ie-init":"../../../../../sp_common/book-template/ohc-book-template/js/bundle"]);

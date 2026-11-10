@@ -1,5 +1,5 @@
 #==================================================
-# CREACIÓN DE DB USANDO DIFERENTES MÉTODOS
+# CREACIÓN DE DB 
 #==================================================
 #**************************************************
 # 1) CONTEXTO Y ENTORNO 
@@ -25,6 +25,7 @@ ssh -p 2222 oracle@localhost
 "SQL> CREATE DATABASE"
 # Vamos a ver su alcance. En este caso, NO vamos a 
 # configurar ASM. 
+# Para ver cómo se usa DBCA, ver [8] (no interactivo) y [9] (interactivo)
 #--------------------------------------------------
 # 2.1 ) ESTABLECER ORACLE_SID
 #--------------------------------------------------
@@ -83,7 +84,18 @@ vi $ORACLE_HOME/dbs/initORCLCDB.ora
  control_files = (/u01/ctrlf/control01.ctl, /u02/ctrlf/control02.ctl)
  compatible ='12.0.0'
 #
-# Este PFILE es mínimo, ya lo iré mejorando
+# Este PFILE es mínimo.
+# En el PFILE, la gestión del UNDO es automática por defecto
+# pero podemos hacerla explícita añadiendo UNDO_MANAGEMENT=AUTO.
+# Con este modo, el UNDO se guarda en el tablespace de UNDO y
+# lo gestiona el motor de DB.
+# 
+# Si añadimos alguno de los siguientes parámetros en el PFILE:
+# DB_CREATE_FILE_DEST, DB_CREATE_ONLINE_LOG_DEST_n o
+# DB_RECOVERY_FILE_DEST, le decimos a la DB que cree y gestione 
+# los ficheros para las estructuras de DB especificadas.
+# 
+# oracle recomienda usar Fast Recovery Area.
 #--------------------------------------------------
 # 2.4 ) CONEXIÓN A LA INSTANCIA Y SPFILE
 #--------------------------------------------------
@@ -101,7 +113,32 @@ SQL> CONNECT / AS SYSDBA
 SQL> CREATE SPFILE FROM PFILE='/u01/app/oracle/product/19.0.0/dbhome_1/dbs/initORCLCDB.ora';
 
  File created.
-
+# 
+# Existen dos tipos de parámetros de inicio:
+# - Dinámicos: Pueden cambiarse en la propia instancia y son immediatos.
+# - Estáticos: Se requiere reinicio da la DB.
+# Para cambiarlos se usa el comando ALTER SYSTEM SET y tiene varios alcances
+# (SCOPES)
+# - SPFILE: Cambia en el SPFILE solo y no se hace ningún cambio en la instancia 
+#   actual.
+# - MEMORY: Se cambia el parámetro dinámico para esta instancia, pero no poersistirá
+#   en futuras
+# - BOTH: Combina las anteriores. Solo sirve para parámetros dinámicos.
+# Si usamos SPFILE o BOTH hay que inicilizar la DB con un SPFILE. Si lo hemos 
+# hecho así, SCOPE=BOTH será el comportamiento por defecto.
+# Si hemos usado un PFILE será MEMORY.
+# También podemos usar ALTER SYSTEM RESET para dejar el parámetro con su valor por defecto.
+# CUIDADO: El comportamiento de este comando cambia según la DB sea CDB o PDB.
+# Si usamos RMAN, podemos hacer un backup solo del SPFILE, aunque,
+# si hacemos un backup de la DB estará incluido.
+# Algunos métodos para ver los parámetros son:
+SQL> SHOW PARAMETERS --Sesión actual
+SQL> SHOW SPPARAMETERS --Los del SPFILE
+SQL> CREATE PFILE 
+SQL> SELECT * FROM V$PARAMETER2; --Sesión actual
+SQL> SELECT * FROM V$SYSTEM_PARAMETER2; --Instancia actual
+SQL> SELECT * FROM V$SPPARAMETER; --Contenido actual del SPFILE
+#
 SQL> SELECT INSTANCE_NAME,DATABASE_STATUS,STATUS FROM V$INSTANCE;
 
  INSTANCE_NAME    DATABASE_STATUS   STATUS
@@ -130,13 +167,13 @@ CREATE DATABASE ORCLCDB
      SIZE 700M REUSE AUTOEXTEND ON NEXT 100M MAXSIZE 15G
    SYSAUX DATAFILE '/u02/oradata/ORCLCDB/sysaux01.dbf'
      SIZE 550M REUSE AUTOEXTEND ON NEXT 100M MAXSIZE 15G
-   DEFAULT TABLESPACE users
+   DEFAULT TABLESPACE USERS
       DATAFILE '/u02/oradata/ORCLCDB/users01.dbf'
       SIZE 500M REUSE AUTOEXTEND ON NEXT 100M MAXSIZE 10G
-   DEFAULT TEMPORARY TABLESPACE tempts1
+   DEFAULT TEMPORARY TABLESPACE TEMPTS1
       TEMPFILE '/u02/oradata/ORCLCDB/temp01.dbf'
       SIZE 200M REUSE AUTOEXTEND ON NEXT 640K MAXSIZE 15G
-   UNDO TABLESPACE undotbs1
+   UNDO TABLESPACE UNDOTBS1
       DATAFILE '/u02/oradata/ORCLCDB/undotbs01.dbf'
       SIZE 200M REUSE AUTOEXTEND ON NEXT 5120K MAXSIZE 15G
     ENABLE PLUGGABLE DATABASE
@@ -148,9 +185,62 @@ CREATE DATABASE ORCLCDB
   Database created.
 
 # CUIDADO: Las contraseñas son case-sensitive.
+# 
 # CUIDADO: Este comando NO crea directorios, deben 
 # existir previamente. Si el comando fallase, debemos 
 # borrar todo lo que haya creado la anterior ejecución.
+# 
+# CUIDADO: Si vamos a usar OMF, vigilar los parámetros 
+# por defecto del CREATE DATABASE.
+#
+# NOTA: EXTENT MANAGEMENT LOCAL crea un bitmap en cada 
+# datafile para manejar los extents. Esta es la opción 
+# recomendada, pero NO es la opción por defecto, por tanto
+# hay que especificarlo.
+#
+# NOTA: El tablespace SYSAUX es un tablespace auxiliar al 
+# de SYSTEM, obligatorio y que sirve como tablespace por defecto
+# para muchas funcionalidades y productos que antes requerían de 
+# uno propio. También reduce la carga en el tablespace de SYSTEM.
+# podemos usar V$SYSAUX_OCCUPANTS para ver los componentes que
+# hay [4]. 
+#
+# NOTA: En el CREATE DATABASE podemos elegir si los
+# tablespaces que crearemos por defecto son bigfile o smallfile.
+# Podemos consultar el tipo de tablespace por defecto 
+# (smallfile o bigfile) con
+SQL> SELECT PROPERTY_VALUE FROM DATABASE_PROPERTIES 
+WHERE PROPERTY_NAME = 'DEFAULT_TBS_TYPE';
+# Por defecto es smallfile. 
+# También podemos alterar el comportamiento por defecto especificando
+# nosotros la opción, excepto con los de SYSTEM y SYSAUX.
+#
+# NOTA: Si tenemos UNDO_MANAGEMENT en AUTO y no especificamos 
+# el tablespace de UNDO, se nos creará uno por defecto llamado SYS_UNDOTBS.
+#
+# NOTA: Oracle recomienda crear un tablespace por defecto para los
+# usuarios no-SYSTEM. Si no lo hacemos, el tablespace por defecto será SYSTEM.
+# Lo mismo ocurre con el tablespace temporal. Si no creamos uno por defecto
+# y no especificamos uno al crear el usuario, el tablespace temporal por 
+# defecto es SYSTEM (si no está en locally managed [5]), lo que es una mala práctica.
+# Lo mismo ocurre con undo, si no creamos ningún tablespace undo y NO tenemos 
+# el parámetro UNDO_TABLESPACE en AUTO, los datos de undo se escriben en SYSTEM.
+#
+# Cuando ejecutamos un "CREATE DATABASE" hacemos al menos las 
+# siguientes operaciones:
+# - Crear los datafiles, controlfiles y los online redologs.
+#   (y establecer el modo ARCHIVELOG)
+# - Crear los tablespaces de SYSTEM y SYSAUX.
+# - Crear el diccionario de datos.
+# - Establecer el charset y la zona horaria.
+#   La zona horaria por defecto es la del host y se puede cambiar para ciertas 
+#   sesiones. Para ver las zonas horarias válidas, ver:
+#   "$ORACLE_HOME/oracore/zoneinfo/timezlrg_11.dat" (el que se usa por defecto) 
+#   "ORACLE_HOME/oracore/zoneinfo/timezone_11.dat" (contiene menos zonas)
+#   o en SQL*Plus ejecutar
+SQL> SELECT * FROM V$TIMEZONE_NAMES;
+# - Montar y abrir la DB.
+#
 # NOTA: Para ver las trazas, ejecutar
 SQL> SELECT * FROM V$DIAG_INFO;
 # Y para el alert_<SID>.log, fijarnos en el NAME='Default Trace File'.
@@ -160,7 +250,7 @@ SQL> SELECT * FROM V$DIAG_INFO;
 vi ~/ENV/ORCLCDB.env
   alias check_alert='tail -f /u01/app/oracle/diag/rdbms/orclcdb/ORCLCDB/trace/alert_ORCLCDB.log'
   alias sysdba='sqlplus / as sysdba'
-# Ya que estamos, vamos a crear un par de tablespaces para empezar.
+  # Ya que estamos, vamos a crear un par de tablespaces para empezar.
 SQL> CREATE TABLESPACE LAB_D LOGGING DATAFILE '/u02/oradata/ORCLCDB/LAB_D.dbf' SIZE 1G AUTOEXTEND ON NEXT 10M MAXSIZE 5G;
   
   Tablespace created.
@@ -175,8 +265,40 @@ SQL> CREATE TABLESPACE LAB_I LOGGING DATAFILE '/u02/oradata/ORCLCDB/LAB_I.dbf' S
 # del diccionario de datos y el correcto funcionamiento de SQL*Plus.
 SQL> @?/rdbms/admin/catalog.sql
 SQL> @?/rdbms/admin/catproc.sql
+SQL> @?/rdbms/admin/utlrp.sql
+#--------------------------------------------------
+# 2.8 ) OTRAS CONFIGURACIONES 
+#--------------------------------------------------
+# Podemos, por ejemplo, hacer que la instancia se inicie
+# de forma automática cuando el servidor se reinicie [3].
+# Podemos configurar también uno o varios servicios [6].
 # 
+# Podemos configurar mejor la seguridad de nuestra DB una vez creada con distintas técnicas.
+# Podemos usar perfiles que tengan restricciones en cuanto a contraseñas, asignar roles y permisos 
+# según el usuario... 
+# También podemos encriptar los datafiles, por si alguien intenta mirar dentro de ellos con 
+# alguna herramienta a nivel de OS, usando Transparent Data Encription. Gracias a esta característica, 
+# podemos encriptar columnas de tablas o tablespaces enteros.
+# Además, podemos usar Oracle wallet como gestor de contraseñas seguro desde el lado del cliente. Así
+# evitamos tenerlo en scripts o código de aplicaciones.
+# 
+# Podemos instalar esquemas y datos dummy desde [7].
+#--------------------------------------------------
+# 3 ) BORRADO DE LA DB 
+#--------------------------------------------------
+# Usamos el comando
+SQL> DROP DATABASE;
+# Que borra todos los ficheros listados en el controlfile. 
+# Para que funcione esto, tiene que estar la DB montada en modo exclusivo y restrictivo.
 #==================================================
 # BIBLIOGRAFÍA
 # [1] https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/creating-and-configuring-an-oracle-database.html#GUID-0306126A-D63C-41E0-8D6E-48020FC18697
 # [2] https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/getting-started-with-database-administration.html#GUID-26EC8D1B-7A2F-4F0A-9588-D92CBD610858
+# [3] https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/configuring-automatic-restart-of-an-oracle-database.html#GUID-5832E064-85C6-453C-B932-99700B1732A9
+# [4] https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/managing-tablespaces.html#GUID-30942290-88DD-4D62-816F-F7EDCE661710
+# [5] https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/creating-and-configuring-an-oracle-database.html#GUID-D8061728-6A13-4F30-AA91-EBE52F276AC3
+# [6] https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/creating-and-configuring-an-oracle-database.html#GUID-B39AD65C-5A7D-4533-931D-AAF9D587A062
+# [7] https://docs.oracle.com/en/database/oracle/oracle-database/19/comsc/introduction-to-sample-schemas.html
+# [8] https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/creating-and-configuring-an-oracle-database.html#GUID-5DD346B8-4404-48F1-A811-F39D739E4D05
+# [9] https://docs.oracle.com/en/database/oracle/oracle-database/19/admqs/installing-oracle-database-creating-database.html#ADMQS002
+

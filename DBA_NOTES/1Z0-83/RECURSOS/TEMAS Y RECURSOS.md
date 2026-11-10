@@ -11,7 +11,7 @@ Estos manuales oficiales son la referencia principal para múltiples temas:
 - [Tuning para SQL](https://docs.oracle.com/en/database/oracle/oracle-database/19/tgsql/)
 - [Nuevas características de 19c](https://docs.oracle.com/en/database/oracle/oracle-database/19/newft/)
 
-# [PARTE I. ARQUITECTURA MULTITENANT](obsidian://open?vault=DBA&file=DBA_NOTES%2F1Z0-83%2FPARTE%20I.%20ARQUITECTURA%20MULTITENANT)
+# PARTE I. ARQUITECTURA MULTITENANT
 
 ## 1. CREACIÓN DE CBDs Y PDBs
 
@@ -91,12 +91,6 @@ Contenido que debes dominar: recuperación de CDB/PDB, diferencia entre restore 
 
 Los manuales de estos siete primeros bloques son los recursos oficiales de referencia para arquitectura multitenant, backup/recovery, upgrades y seguridad.
 
-![](https://www.google.com/s2/favicons?domain=https://docs.oracle.com&sz=32)
-
-Oracle Docs
-
-+2
-
 # Parte II. Backup and Recovery Workshop
 
 ## 8. Backup Strategies and Terminology
@@ -139,9 +133,6 @@ Qué debes estudiar:
 
 La guía oficial de Backup and Recovery presenta los escenarios de recuperación y los procedimientos específicos para cada tipo.
 
-![](https://www.google.com/s2/favicons?domain=https://docs.oracle.com&sz=32)
-
-Oracle Docs
 
 ## 10. Using Flashback Technologies
 
@@ -208,9 +199,6 @@ Qué debes estudiar: mensajes RMAN, errores de canales, problemas de I/O, throug
 
 La guía de Backup and Recovery contiene capítulos específicos de diagnóstico, rendimiento y solución de problemas de RMAN.
 
-![](https://www.google.com/s2/favicons?domain=https://docs.oracle.com&sz=32)
-
-Oracle Docs
 
 # Parte III. Deploy, Patch and Upgrade Workshop
 
@@ -234,12 +222,6 @@ Para practicar en Linux, consulta también la [lista oficial de requisitos previ
 Qué debes estudiar: inventario de parches, OPatch, prerequisitos, conflictos, aplicación de Release Updates (RU), parcheado de Grid Infrastructure y base de datos, `datapatch` y validación del resultado.
 
 Recurso adicional: [Oracle Database Patch Maintenance — métodos de parcheado](https://docs.oracle.com/en/database/oracle/oracle-database/19/dbptc/toc.htm).
-
-![](https://www.google.com/s2/favicons?domain=https://docs.oracle.com&sz=32)
-
-Oracle Docs
-
-+1
 
 ## 19. Upgrading to Oracle Grid Infrastructure
 
@@ -279,11 +261,6 @@ Qué debes estudiar: relación entre Oracle Restart, ASM, listeners y bases de d
 
 Oracle Restart forma parte de Grid Infrastructure para un servidor independiente y puede gestionar el reinicio automático de componentes registrados.
 
-![](https://www.google.com/s2/favicons?domain=https://docs.oracle.com&sz=32)
-
-Oracle Docs
-
-+1
 
 ## 23. Upgrade the Oracle Database
 
@@ -297,11 +274,6 @@ Qué debes estudiar: planificación, compatibilidad, espacio, backups, herramien
 
 Oracle documenta los métodos de upgrade, las tareas previas y las posteriores en su guía de actualización.
 
-![](https://www.google.com/s2/favicons?domain=https://docs.oracle.com&sz=32)
-
-Oracle Docs
-
-+1
 
 ## 24. Install Grid Infrastructure for a Standalone Server
 
@@ -313,11 +285,6 @@ Qué debes estudiar: imágenes de software (gold images), provisión de Oracle H
 
 Oracle cambió el nombre de Rapid Home Provisioning a Oracle Fleet Patching and Provisioning (FPP) en Oracle Database 19c. Por eso encontrarás ambos términos en documentación y vídeos.
 
-![](https://www.google.com/s2/favicons?domain=https://docs.oracle.com&sz=32)
-
-Oracle Docs
-
-+1
 
 # Parte IV. Oracle Database 19c: New Features for Administrators
 
@@ -351,12 +318,6 @@ Qué debes estudiar: mejoras de diagnóstico de 19c, herramientas de diagnóstic
 
 El New Features Guide organiza las novedades por áreas, incluida Diagnosability. Para este objetivo, estudia las funciones concretas que Oracle identifica como nuevas en 19c, no solo el uso general de ADRCI.
 
-![](https://www.google.com/s2/favicons?domain=https://docs.oracle.com&sz=32)
-
-Oracle Docs
-
-+1
-
 # Parte V. Oracle Database: Administration Workshop
 
 ## 28. Monitoring and Tuning Database Performance
@@ -389,11 +350,6 @@ Qué debes dominar:
 
 La documentación oficial describe AWR como infraestructura para recopilar y conservar estadísticas de carga de trabajo, que ADDM analiza para detectar posibles problemas de rendimiento y recomendar acciones.
 
-![](https://www.google.com/s2/favicons?domain=https://docs.oracle.com&sz=32)
-
-Oracle Docs
-
-+1
 
 Nota de licencia: estudia los conceptos y la interpretación de informes, pero verifica la licencia antes de utilizar AWR, ADDM u otras funciones de Diagnostics Pack en un entorno real.
 
@@ -426,11 +382,6 @@ Qué debes dominar:
 
 La documentación oficial de Oracle diferencia claramente SQL Tuning Advisor —que analiza sentencias individuales o conjuntos de sentencias— de SQL Access Advisor, que recomienda estructuras de acceso a partir de una carga de trabajo.
 
-![](https://www.google.com/s2/favicons?domain=https://docs.oracle.com&sz=32)
-
-Oracle Docs
-
-+2
 
 # Cómo utilizar esta guía para estudiar el examen
 
@@ -451,12 +402,4 @@ Ejecuta la operación en una base de datos de pruebas y documenta los resultados
 4. Verificación del Exam Topic
 
 Da el objetivo por estudiado cuando puedas explicar la operación, identificar sus requisitos y restricciones, resolver un escenario y reconocer qué procedimiento sería incorrecto.
-
-## Dos comprobaciones importantes antes de pagar o presentarte al examen
-
-- Versión: los materiales que has enumerado mezclan referencias a Oracle 18c y 19c. Para comandos y procedimientos de administración, utiliza preferentemente documentación 19c, pero consulta las diferencias de versión cuando el objetivo trate expresamente de una novedad de 18c o 19c.
     
-- Cobertura: esta guía enlaza documentación oficial gratuita para cada objetivo y búsquedas de vídeos específicas. No significa que cada vídeo cubra el objetivo entero ni que se haya verificado cada vídeo individual. La documentación oficial y los Exam Topics son la referencia para comprobar la cobertura.
-    
-
-El siguiente paso lógico es usar tu lista original como checklist y marcar cada objetivo solo cuando hayas completado la lectura y la práctica correspondientes. Así podrás avanzar por los cursos de MyLearn sin pagar por ellos y mantener una trazabilidad clara de qué contenido has estudiado, qué has practicado y qué te falta dominar.
