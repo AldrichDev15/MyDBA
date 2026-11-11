@@ -1,40 +1,38 @@
 #==================================================
-# CREACIÓN DE DB 
+# CREACIÓN DE DB
 #==================================================
 #**************************************************
-# 1) CONTEXTO Y ENTORNO 
+# 1) CONTEXTO Y ENTORNO
 #**************************************************
-# Vamos a crear una DB en una máquina virtual Oracle
-# Linux Server v8.10. Los recursos que le daremos a
-# dicha máquina virtual serán los siguientes:
-# - 3052M de memoria RAM.
+# Vamos a crear una base de datos Oracle en una máquina virtual
+# Linux Server v8.10. Los recursos que le daremos a dicha VM serán
+# los siguientes:
+# - 3052 MB de memoria RAM.
 # - 3 CPUs.
-# - 200G de disco.
-# Hemos instalado Oracle Database 19c en la máquina
-# siguiendo los pasos del proceso de instalación oficial.
-# Una vez lo tenemos instalado, procedemos a la creación
-# de una DB.
-# Para acceder a la VM, hemos configurado una regla NAT
-# que redirige el puerto 2222 de nuestro host al ssh de 
-# la VM (puerto 22). Por lo tanto, ejecutaremos
+# - 200 GB de disco.
+# Hemos instalado Oracle Database 19c en la máquina siguiendo el
+# proceso oficial de instalación. Una vez la tenemos preparada,
+# procedemos a la creación de la base de datos.
+# Para acceder a la VM, hemos configurado una regla NAT que redirige
+# el puerto 2222 del host al puerto 22 de la máquina virtual. Por
+# ello, ejecutaremos la siguiente conexión:
 ssh -p 2222 oracle@localhost
 #**************************************************
 # 2) CREACIÓN DE UNA INSTANCIA MANUAL [1]
 #**************************************************
-# Para crear la instancia manual, usamos el comando 
-"SQL> CREATE DATABASE"
-# Vamos a ver su alcance. En este caso, NO vamos a 
-# configurar ASM. 
-# Para ver cómo se usa DBCA, ver [8] (no interactivo) y [9] (interactivo)
+# Para crear la instancia de forma manual, usamos el comando
+# "SQL> CREATE DATABASE".
+# Vamos a ver su alcance. En este caso, no vamos a configurar ASM.
+# Para ver el uso de DBCA, consultamos [8] (modo no interactivo)
+# y [9] (modo interactivo).
 #--------------------------------------------------
 # 2.1 ) ESTABLECER ORACLE_SID
 #--------------------------------------------------
-# El primer paso que se indica es elegir un nombre para
-# la variable ORACLE_SID. En nuestro caso, se llamará
-# ORCLCDB.
-# Vamos a crear un directorio ENV en el home del usuario 
-# oracle y en él, añadiremos los archivos de entorno para
-# DB que creeemos.
+# El primer paso es elegir un nombre para la variable ORACLE_SID.
+# En este caso, la usaremos como ORCLCDB.
+# Vamos a crear un directorio ENV dentro del home del usuario oracle,
+# y en él añadiremos los archivos de entorno para cada base de datos
+# que creemos.
 mkdir -p ~/ENV
 vi ~/ENV/ORCLCDB.env
  # DB PARAMS
@@ -47,22 +45,23 @@ vi ~/ENV/ORCLCDB.env
 # 2.2 ) MÉTODO DE AUTENTICACIÓN [2]
 #--------------------------------------------------
 # El siguiente paso trata sobre los métodos de autenticación.
-# En nuestro caso, siempre vamos a poder entrar desde el
-# OS como usuario oracle (quién ya tiene privilegio de SYSDBA),
-# pero vamos a crear un fichero de contraseña aún así.
-# Utilizaremos la utilidad ORAPWD. Este comando crea y 
-# mantiene un archivo de contraseñas.
+# En este caso, siempre podremos entrar desde el sistema operativo
+# como usuario oracle, que ya tiene privilegios de SYSDBA, pero
+# igualmente crearemos un fichero de contraseñas para completar la
+# configuración.
+# Utilizaremos la utilidad ORAPWD. Este comando crea y mantiene un
+# archivo de contraseñas.
 orapwd file=$ORACLE_HOME/dbs/orapw$ORACLE_SID \
     FORCE=y \
     FORMAT=12.2 \
-    SYS=password \
-# 
+    SYS=password
+#
 #--------------------------------------------------
 # 2.3 ) CREACIÓN DEL PFILE
 #--------------------------------------------------
-# Estamos listos para crear el PFILE de nuestra DB. Creamos
-# un PFILE porque aún no podemos generar un SPFILE al no 
-# tener la DB creada.
+# Estamos listos para crear el PFILE de la base de datos. Lo hacemos
+# porque aún no podemos generar un SPFILE, ya que la instancia aún
+# no existe.
 # El fichero estará en $ORACLE_HOME/dbs/init$ORACLE_SID.ora.
 vi $ORACLE_HOME/dbs/initORCLCDB.ora
 
@@ -84,22 +83,22 @@ vi $ORACLE_HOME/dbs/initORCLCDB.ora
  control_files = (/u01/ctrlf/control01.ctl, /u02/ctrlf/control02.ctl)
  compatible ='12.0.0'
 #
-# Este PFILE es mínimo.
-# En el PFILE, la gestión del UNDO es automática por defecto
-# pero podemos hacerla explícita añadiendo UNDO_MANAGEMENT=AUTO.
-# Con este modo, el UNDO se guarda en el tablespace de UNDO y
-# lo gestiona el motor de DB.
-# 
-# Si añadimos alguno de los siguientes parámetros en el PFILE:
+# Este PFILE es mínimo, pero funcional.
+# En el PFILE, la gestión del UNDO es automática por defecto,
+# aunque podemos hacerla explícita añadiendo UNDO_MANAGEMENT=AUTO.
+# Con este modo, el UNDO se guarda en el tablespace de UNDO y lo
+# gestiona el motor de la base de datos.
+#
+# Si añadimos alguno de estos parámetros al PFILE:
 # DB_CREATE_FILE_DEST, DB_CREATE_ONLINE_LOG_DEST_n o
-# DB_RECOVERY_FILE_DEST, le decimos a la DB que cree y gestione 
-# los ficheros para las estructuras de DB especificadas.
-# 
-# oracle recomienda usar Fast Recovery Area.
+# DB_RECOVERY_FILE_DEST, indicamos a la base de datos que cree y
+# gestione los ficheros asociados a esas estructuras.
+# Oracle recomienda usar Fast Recovery Area.
 #--------------------------------------------------
 # 2.4 ) CONEXIÓN A LA INSTANCIA Y SPFILE
 #--------------------------------------------------
-# Con las variables de entorno correctamente asignadas
+# Con las variables de entorno correctamente asignadas, entramos como
+# usuario oracle y conectamos a la instancia en estado idle.
 su - oracle
 source ~/ENV/ORCLCDB.env
 sqlplus /nolog
@@ -109,32 +108,34 @@ SQL> CONNECT / AS SYSDBA
 #
 # Creamos un SPFILE con el PFILE que teníamos.
 # Se crea en la ruta por defecto "$ORACLE_HOME/dbs/spfileORCLCDB.ora".
-# 
+#
 SQL> CREATE SPFILE FROM PFILE='/u01/app/oracle/product/19.0.0/dbhome_1/dbs/initORCLCDB.ora';
 
  File created.
-# 
+#
 # Existen dos tipos de parámetros de inicio:
-# - Dinámicos: Pueden cambiarse en la propia instancia y son immediatos.
-# - Estáticos: Se requiere reinicio da la DB.
-# Para cambiarlos se usa el comando ALTER SYSTEM SET y tiene varios alcances
-# (SCOPES)
-# - SPFILE: Cambia en el SPFILE solo y no se hace ningún cambio en la instancia 
-#   actual.
-# - MEMORY: Se cambia el parámetro dinámico para esta instancia, pero no poersistirá
-#   en futuras
-# - BOTH: Combina las anteriores. Solo sirve para parámetros dinámicos.
-# Si usamos SPFILE o BOTH hay que inicilizar la DB con un SPFILE. Si lo hemos 
-# hecho así, SCOPE=BOTH será el comportamiento por defecto.
-# Si hemos usado un PFILE será MEMORY.
-# También podemos usar ALTER SYSTEM RESET para dejar el parámetro con su valor por defecto.
-# CUIDADO: El comportamiento de este comando cambia según la DB sea CDB o PDB.
-# Si usamos RMAN, podemos hacer un backup solo del SPFILE, aunque,
-# si hacemos un backup de la DB estará incluido.
+# - Dinámicos: pueden cambiarse en la propia instancia y se aplican
+#   de forma inmediata.
+# - Estáticos: requieren reinicio de la base de datos.
+# Para cambiarlos se usa ALTER SYSTEM SET, y este comando admite varios
+# alcances o scopes.
+# - SPFILE: cambia el valor solo en el SPFILE y no altera la instancia actual.
+# - MEMORY: cambia el parámetro en memoria para esta instancia, pero no
+#   persiste en futuros reinicios.
+# - BOTH: combina las dos anteriores. Solo sirve para parámetros dinámicos.
+# Si usamos SPFILE o BOTH y la base de datos se inicializa con un archivo
+# SPFILE, SCOPE=BOTH será el comportamiento por defecto.
+# Si hemos usado un PFILE, el comportamiento por defecto será MEMORY.
+# También podemos usar ALTER SYSTEM RESET para dejar el parámetro con
+# su valor por defecto.
+# CUIDADO: el comportamiento de este comando cambia según la base de datos
+# sea CDB o PDB.
+# Si usamos RMAN, podemos hacer un backup solo del SPFILE, aunque si
+# hacemos un backup completo de la base de datos, este ya quedará incluido.
 # Algunos métodos para ver los parámetros son:
 SQL> SHOW PARAMETERS --Sesión actual
 SQL> SHOW SPPARAMETERS --Los del SPFILE
-SQL> CREATE PFILE 
+SQL> CREATE PFILE FROM SPFILE; --Genera un PFILE a partir del SPFILE actual
 SQL> SELECT * FROM V$PARAMETER2; --Sesión actual
 SQL> SELECT * FROM V$SYSTEM_PARAMETER2; --Instancia actual
 SQL> SELECT * FROM V$SPPARAMETER; --Contenido actual del SPFILE
@@ -145,11 +146,15 @@ SQL> SELECT INSTANCE_NAME,DATABASE_STATUS,STATUS FROM V$INSTANCE;
  ---------------- ----------------- ------------
  ORCLCDB          ACTIVE            STARTED
 
-# En este punto la memoria está asignada y los procesos 
-# levantados, pero la DB en sí no existe.
+# En este punto, la memoria ya está asignada y los procesos han sido
+# levantados, pero la base de datos todavía no existe.
 #--------------------------------------------------
 # 2.5 ) CREACIÓN DE LA DB
 #--------------------------------------------------
+# Antes de ejecutar CREATE DATABASE, es importante comprobar que los
+# directorios de trabajo y de control existan. Oracle no los crea solo.
+mkdir -p /u01/ctrlf /u02/ctrlf /u03/online_redo /u02/oradata/ORCLCDB
+
 CREATE DATABASE ORCLCDB
    USER SYS IDENTIFIED BY "0R4C|34DM1N"
    USER SYSTEM IDENTIFIED BY "ORASYSTEM"
@@ -184,112 +189,116 @@ CREATE DATABASE ORCLCDB
 
   Database created.
 
-# CUIDADO: Las contraseñas son case-sensitive.
-# 
-# CUIDADO: Este comando NO crea directorios, deben 
-# existir previamente. Si el comando fallase, debemos 
-# borrar todo lo que haya creado la anterior ejecución.
-# 
-# CUIDADO: Si vamos a usar OMF, vigilar los parámetros 
-# por defecto del CREATE DATABASE.
+# CUIDADO: las contraseñas son case-sensitive.
 #
-# NOTA: EXTENT MANAGEMENT LOCAL crea un bitmap en cada 
-# datafile para manejar los extents. Esta es la opción 
-# recomendada, pero NO es la opción por defecto, por tanto
-# hay que especificarlo.
+# CUIDADO: este comando NO crea directorios; deben existir previamente.
+# Si la ejecución falla, habrá que limpiar todo lo que haya dejado la
+# anterior ejecución.
 #
-# NOTA: El tablespace SYSAUX es un tablespace auxiliar al 
-# de SYSTEM, obligatorio y que sirve como tablespace por defecto
-# para muchas funcionalidades y productos que antes requerían de 
-# uno propio. También reduce la carga en el tablespace de SYSTEM.
-# podemos usar V$SYSAUX_OCCUPANTS para ver los componentes que
-# hay [4]. 
+# CUIDADO: si vamos a usar OMF, hay que revisar los parámetros por
+# defecto del CREATE DATABASE.
 #
-# NOTA: En el CREATE DATABASE podemos elegir si los
-# tablespaces que crearemos por defecto son bigfile o smallfile.
-# Podemos consultar el tipo de tablespace por defecto 
-# (smallfile o bigfile) con
-SQL> SELECT PROPERTY_VALUE FROM DATABASE_PROPERTIES 
+# NOTA: EXTENT MANAGEMENT LOCAL crea un bitmap en cada datafile para
+# gestionar los extents. Esta es la opción recomendada, aunque NO es
+# la opción por defecto, por lo que hay que especificarla.
+#
+# NOTA: el tablespace SYSAUX es un tablespace auxiliar de SYSTEM,
+# obligatorio y que sirve como área por defecto para muchas
+# funcionalidades y productos que antes requerían de uno propio.
+# También reduce la carga sobre el tablespace de SYSTEM. Podemos usar
+# V$SYSAUX_OCCUPANTS para ver los componentes que lo ocupan [4].
+#
+# NOTA: en el CREATE DATABASE podemos elegir si los tablespaces por
+# defecto serán bigfile o smallfile. Podemos consultar el tipo actual
+# con:
+SQL> SELECT PROPERTY_VALUE FROM DATABASE_PROPERTIES
 WHERE PROPERTY_NAME = 'DEFAULT_TBS_TYPE';
-# Por defecto es smallfile. 
-# También podemos alterar el comportamiento por defecto especificando
-# nosotros la opción, excepto con los de SYSTEM y SYSAUX.
+# Por defecto, el tipo es smallfile.
+# También podemos alterar este comportamiento especificando nosotros
+# la opción, salvo en los tablespaces de SYSTEM y SYSAUX.
 #
-# NOTA: Si tenemos UNDO_MANAGEMENT en AUTO y no especificamos 
-# el tablespace de UNDO, se nos creará uno por defecto llamado SYS_UNDOTBS.
+# NOTA: si tenemos UNDO_MANAGEMENT en AUTO y no especificamos un
+# tablespace de UNDO, Oracle creará uno por defecto llamado SYS_UNDOTBS.
 #
 # NOTA: Oracle recomienda crear un tablespace por defecto para los
-# usuarios no-SYSTEM. Si no lo hacemos, el tablespace por defecto será SYSTEM.
-# Lo mismo ocurre con el tablespace temporal. Si no creamos uno por defecto
-# y no especificamos uno al crear el usuario, el tablespace temporal por 
-# defecto es SYSTEM (si no está en locally managed [5]), lo que es una mala práctica.
-# Lo mismo ocurre con undo, si no creamos ningún tablespace undo y NO tenemos 
-# el parámetro UNDO_TABLESPACE en AUTO, los datos de undo se escriben en SYSTEM.
+# usuarios no-SYSTEM. Si no lo hacemos, el tablespace por defecto será
+# SYSTEM. Lo mismo ocurre con el tablespace temporal. Si no creamos
+# uno por defecto y no especificamos uno al crear el usuario, el
+# tablespace temporal por defecto será SYSTEM (si no está en locally
+# managed [5]), lo que es una mala práctica.
+# De igual forma, si no creamos ningún tablespace de UNDO y el
+# parámetro UNDO_TABLESPACE no está en AUTO, los datos de UNDO se
+# escriben en SYSTEM.
 #
-# Cuando ejecutamos un "CREATE DATABASE" hacemos al menos las 
-# siguientes operaciones:
-# - Crear los datafiles, controlfiles y los online redologs.
-#   (y establecer el modo ARCHIVELOG)
+# Cuando ejecutamos un "CREATE DATABASE" hacemos al menos estas
+# operaciones:
+# - Crear los datafiles, controlfiles y online redologs, y establecer
+#   el modo ARCHIVELOG.
 # - Crear los tablespaces de SYSTEM y SYSAUX.
 # - Crear el diccionario de datos.
 # - Establecer el charset y la zona horaria.
-#   La zona horaria por defecto es la del host y se puede cambiar para ciertas 
-#   sesiones. Para ver las zonas horarias válidas, ver:
-#   "$ORACLE_HOME/oracore/zoneinfo/timezlrg_11.dat" (el que se usa por defecto) 
-#   "ORACLE_HOME/oracore/zoneinfo/timezone_11.dat" (contiene menos zonas)
-#   o en SQL*Plus ejecutar
+#   La zona horaria por defecto es la del host y puede cambiarse para
+#   ciertas sesiones. Para ver las zonas horarias válidas, revisa:
+#   "$ORACLE_HOME/oracore/zoneinfo/timezlrg_11.dat" (el que se usa por
+#   defecto)
+#   "$ORACLE_HOME/oracore/zoneinfo/timezone_11.dat" (contiene menos zonas)
+#   o en SQL*Plus ejecuta:
 SQL> SELECT * FROM V$TIMEZONE_NAMES;
-# - Montar y abrir la DB.
+# - Montar y abrir la base de datos.
 #
-# NOTA: Para ver las trazas, ejecutar
+# NOTA: para consultar las trazas, ejecuta:
 SQL> SELECT * FROM V$DIAG_INFO;
-# Y para el alert_<SID>.log, fijarnos en el NAME='Default Trace File'.
+# Y para localizar el alert_<SID>.log, revisa el valor de
+# NAME='Default Trace File'.
   /u01/app/oracle/diag/rdbms/orclcdb/ORCLCDB/alert
-# Vamos a poner un atajo que nos muestre las últimas líneas
-# de este fichero en las variables de entorno de esta DB.
+# Vamos a poner un atajo que nos muestre las últimas líneas del log
+# en la variable de entorno de esta base de datos.
 vi ~/ENV/ORCLCDB.env
   alias check_alert='tail -f /u01/app/oracle/diag/rdbms/orclcdb/ORCLCDB/trace/alert_ORCLCDB.log'
   alias sysdba='sqlplus / as sysdba'
   # Ya que estamos, vamos a crear un par de tablespaces para empezar.
 SQL> CREATE TABLESPACE LAB_D LOGGING DATAFILE '/u02/oradata/ORCLCDB/LAB_D.dbf' SIZE 1G AUTOEXTEND ON NEXT 10M MAXSIZE 5G;
-  
+
   Tablespace created.
 
 SQL> CREATE TABLESPACE LAB_I LOGGING DATAFILE '/u02/oradata/ORCLCDB/LAB_I.dbf' SIZE 1G AUTOEXTEND ON NEXT 10M MAXSIZE 2G;
-  
+
   Tablespace created.
 #--------------------------------------------------
-# 2.6 ) EJECUCIÓN DE SCRIPTS 
+# 2.6 ) EJECUCIÓN DE SCRIPTS
 #--------------------------------------------------
-# Necesitamos ejecutar una serie de scripts para crear algunas vistas, PL/SQL y sinonimos
-# del diccionario de datos y el correcto funcionamiento de SQL*Plus.
+# Necesitamos ejecutar una serie de scripts para crear vistas, PL/SQL,
+# sinónimos del diccionario de datos y preparar el correcto
+# funcionamiento de SQL*Plus.
 SQL> @?/rdbms/admin/catalog.sql
 SQL> @?/rdbms/admin/catproc.sql
 SQL> @?/rdbms/admin/utlrp.sql
 #--------------------------------------------------
-# 2.8 ) OTRAS CONFIGURACIONES 
+# 2.7 ) OTRAS CONFIGURACIONES
 #--------------------------------------------------
-# Podemos, por ejemplo, hacer que la instancia se inicie
-# de forma automática cuando el servidor se reinicie [3].
-# Podemos configurar también uno o varios servicios [6].
-# 
-# Podemos configurar mejor la seguridad de nuestra DB una vez creada con distintas técnicas.
-# Podemos usar perfiles que tengan restricciones en cuanto a contraseñas, asignar roles y permisos 
-# según el usuario... 
-# También podemos encriptar los datafiles, por si alguien intenta mirar dentro de ellos con 
-# alguna herramienta a nivel de OS, usando Transparent Data Encription. Gracias a esta característica, 
-# podemos encriptar columnas de tablas o tablespaces enteros.
-# Además, podemos usar Oracle wallet como gestor de contraseñas seguro desde el lado del cliente. Así
-# evitamos tenerlo en scripts o código de aplicaciones.
-# 
+# Podemos, por ejemplo, hacer que la instancia se inicie de forma
+# automática cuando el servidor se reinicie [3].
+# También podemos configurar uno o varios servicios [6].
+#
+# Podemos reforzar la seguridad de la base de datos con distintas
+# técnicas. Por ejemplo, usando perfiles con restricciones de
+# contraseñas, roles y permisos según el usuario.
+# También podemos encriptar los datafiles o tablaspaces completos con
+# Transparent Data Encryption, para que no sean legibles si alguien
+# intenta acceder a ellos desde el sistema operativo.
+# Además, podemos usar Oracle Wallet como gestor de contraseñas seguro
+# desde el lado del cliente, evitando tener credenciales en scripts o
+# código de aplicación.
+#
 # Podemos instalar esquemas y datos dummy desde [7].
 #--------------------------------------------------
-# 3 ) BORRADO DE LA DB 
+# 3 ) BORRADO DE LA DB
 #--------------------------------------------------
-# Usamos el comando
+# Usamos el comando:
 SQL> DROP DATABASE;
-# Que borra todos los ficheros listados en el controlfile. 
-# Para que funcione esto, tiene que estar la DB montada en modo exclusivo y restrictivo.
+# Este comando borra todos los ficheros listados en el controlfile.
+# Para que funcione correctamente, la base de datos debe estar montada
+# en modo exclusivo y restrictivo.
 #==================================================
 # BIBLIOGRAFÍA
 # [1] https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/creating-and-configuring-an-oracle-database.html#GUID-0306126A-D63C-41E0-8D6E-48020FC18697
