@@ -16,13 +16,13 @@
 # Un contenedor es una colección lógica de datos o metadatos dentro de la arquitectura multitenant.
 #
 # Toda CDB tiene exactamente un contenedor raíz (CDB$ROOT, o simplemente raíz), que almacena los metadatos suministrados por Oracle (por
-# ejemplo, el código de los paquetes PL/SQL) y los usuarios comunes. 
+# ejemplo, el código de los paquetes PL/SQL) y los usuarios comunes.
 # Existe también un único contenedor del sistema, que engloba la raíz y todas las PDB de la CDB.
 # También tenemos la semilla (PDB$SEED): una PDB suministrada por Oracle que sirve de plantilla para crear nuevas PDB y en la
 # que no se pueden añadir ni modificar objetos.
 #
 # Opcionalmente, una CDB puede tener cero o más contenedores de aplicación, formados por una única raíz de aplicación y las PDB conectadas
-# a ella. Las PDB creadas por el usuario son cero o más. Una PDB pertenece a cero o a un contenedor de aplicación; en este último caso se 
+# a ella. Las PDB creadas por el usuario son cero o más. Una PDB pertenece a cero o a un contenedor de aplicación; en este último caso se
 # llama PDB de aplicación. Un contenedor de aplicación puede incluir además una semilla de aplicación, una PDB de aplicación creada por el
 # usuario que sirve de plantilla para crear nuevas PDB de aplicación con rapidez.
 
@@ -69,7 +69,7 @@ SQL> CREATE PLUGGABLE DATABASE &PDB_NAME ADMIN USER &ADMIN_USER IDENTIFIED BY &P
 # Para crear una semilla de aplicación se usa la cláusula AS SEED.
 #
 # Clones desde snapshots de PDB. Un snapshot de PDB es una copia point-in-time de una PDB que se puede tomar con el origen abierto en
-# read-only o read/write, de forma manual (SNAPSHOT) o automática (EVERY intervalo). Se clona con USING SNAPSHOT, y el resultado es una 
+# read-only o read/write, de forma manual (SNAPSHOT) o automática (EVERY intervalo). Se clona con USING SNAPSHOT, y el resultado es una
 # PDB completa e independiente, que no necesita materializarse.
 #
 # Snapshot copy PDB. Es un caso distinto: la cláusula SNAPSHOT COPY crea el clon a partir de un snapshot gestionado por el almacenamiento
@@ -112,10 +112,85 @@ SQL> CREATE PLUGGABLE DATABASE &PDB_NAME ADMIN USER &ADMIN_USER IDENTIFIED BY &P
 
 #           DESCRIPCIÓN GENERAL DE LA ARQUITECTURA MULTITENANT
 #
+# CDB$ROOT Y CONTENEDOR DEL SISTEMA
 #
+# Cada CDB tiene un único contenedor o raíz llamado CDB$ROOT. Contiene los metadatos necesarios para gestionar todas las PDB.
+# El contenedor raíz no almacena datos de usuario y Oracle recomienda no crear objetos en la raíz ni modificar ningún objeto
+# de esquemas distribuidos por Oracle, aunque sí que se pueden crear usuarios comunes y roles para administración.
+#
+# Oracle recomienda AL32UTF8 como characterset para la raíz. Las PDB con otro characterset pueden residir dentro de la CDB sin conversión
+# de caracteres.
+# Esta consulta muestra los contenedores de la CDB (incluido CDB$ROOT y PDB$SEED). En nuestro laboratorio:
+SQL> COL NAME FORMAT A15
+SQL> SELECT NAME, CON_ID, DBID, CON_UID, GUID FROM V$CONTAINERS ORDER BY CON_ID;
+# NAME                CON_ID       DBID    CON_UID GUID
+# --------------- ---------- ---------- ---------- --------------------------------
+# CDB$ROOT                 1 3019015319          1 5F01DB67BE160FE6E0650A0027D5333B
+# PDB$SEED                 2 2051096552 2051096552 5F01DB67BE170FE6E0650A0027D5333B
+#
+
+# PDBs
+#
+# Es un conjunto de esquemas de usuario que del lado del cliente, lógicamente se ven como una DB. Es controlada por SYS, un usuario común de la CDB.
+# Hay varios tipos.
+# - PDB estándar:
+#       Puede estar conectada a la CDB$ROOT, o a un contenedor de aplicación, del cual heredarán una definición.
+# - Raíz de aplicación:
+#       Es un contenedor para una aplicación en específico. Puede contener varias PDBs, que heredarán sus definiciones.
+# - PDBs semilla:
+#       Son plantillas para crear más PDB. Pueden ser de aplicación o del contedor raíz. En el caso del contenedor raíz, solo hay una y no se
+#       puede modificar, viene dada por el sistema. En el caso de ser de aplicación, solo puede haber una (aunqeu es opcional) y se puede modificar
+# - PDBs proxy:
+#       Referencian a una PDB remota a través de Database link y las sentencias que se ejecutan ahí, van a esa PDB referenciada. Se parece a un
+#       enlace simbólico de Linux. La creación de una PDB proxy solo copia los ficheros de datos de los tavlespaces SYSTEM y SYSAUX.
+# Hay que tener cuidado con los nombres de las diferentes PDB y que no sean conflictivos con otras PDBs conectadas o las raíces de aplicaciones o
+# del sistema.
+# Para conectarnos remotamente a un objeto desde una PDB, siempre se hará a través de DBLink a menos que sea un objeto de la CDB común
+# enlazado o desde un contenedor usamos la cláusula CONTAINERS(), que nos permite acceder a objetos de las PDB conectadas.
+
+# DICCIONARIO DE DATOS EN UNA PDB
+#
+# Cada PDB tiene su propio diccionario de datos desde la perspectiva de un usuario o aplicación.
+# Los diccionarios de datos de las PDB internamente contienen punteros apuntando a los datos de definición de tablas del diccionario o paquetes
+# PL/SQL de la raíz además de los datos que se van añadiendo a medida que los usuarios van creando sus objetos. Esto reduce la duplicación y
+# ayuda a realizar upgrades.
+#
+# Oracle Database usa los siguientes punteros manejados automáticamente.
+# - Enlaces de metadatos:
+#       Son esos enlaces internos que hay entre los metadatos de los objetos del diccionario de la raíz CDB y la PDB.
+#       Sin embargo, si nosotros creamos algo en la PDB, la CDB no lo verá como algo suyo.
+# - Enlaces de datos:
+#       En algunos casos, se guardan los datos de un objeto en la raíz de la aplicación. La PDB que crea este data link
+#       también guarda su descripción. Un data link hereda el tipo del objeto al que hace referencia.
+# - Enlace de datos extendido:
+#       Es una mezcla de los dos anteriores, hace referencia a un objeto en la aplicación raíz, pero también a un objeto de la PDB de aplicación.
+#       Si lo consultamos desde la raíz de aplicación, los registros salen solo de ahí. Pero cuando lo consultamos desde la PDB de aplicación,
+#       tambiñen muestra registros tanto de la raíz como de la PDB.
+# Oracle gestiona automáticamente los enlaces de datos y metadatos de CDB$ROOT y no se pueden crear, modificar o eliminar.
+#
+# Un objeto de datos del contenedor es una tabla o vista con datos de múltiples contenedores o de la CDB entera.
+# Algunos ejemplos son las vistas V$ y las que empiezan por CDB_. Todas tienen una columna CON_ID que indica elidentificador del contenedor.
+# Si estamos en una PDB, solo podemos ver el diccionario de datos de la PDB actual, pero si estamos en una CDB podemos acceder a las vistas
+# CDB_, que tienen datos de la CDB y todas las PDB a las que el usuario pueda acceder.
+# Al consultar las vistas CDB_ y V$ desde el contenedor raíz, se representan implícitamente como AL32UTF8. Cuidado con el posible truncamiento
+# de la información.
+# Si estamos en una PDB como usuario SYSTEM y consultamos una vista CDB_, automáticamente nos dará el resultado como si estuviesemso
+# consultando las vistas DBA_.
+#
+# El diccionario que contiene metadatos de una CDB se guarda en los tablespaces del sistema (SYSTEM/SYSAUX) y la de las PDB se guardan en
+# tablespaces dedicados a esa PDB. Estos últimos contienen datos y metadatos del back-end de la aplicación.
+
+# COMUNALIDAD EN UNA CDB
+#
+# En una CDB, todos los usarios, roles u objetos son comunes o locales.
+# Un fenómeno común definido en una CDB o una raíz de aplicación se aplica a todas las PDB conectadas a dicha raíz. Un fenomeno puede ser común
+# al contenedor del sistema (incluye la CDB) o en un contenedor de aplicación específico.
+# En una CDB o un contenedor de aplicación, un fenómeno común será el mismo en contenedores actuales y futuros, y solo pueden ser aplicados por
+# un usuario común.
+# Para asegurarnos de separar correctamente los ámbitos de CDB y PDB, las cosas comunes que creeemos en la CDB deben empezar con el prefijo "C##".
+
 #------------------------------------------------------------------------------------------------------------------------------------------------#
 #                                                         Anexo: Bibliografía                                                                    #
 #------------------------------------------------------------------------------------------------------------------------------------------------#
 # [1] --> https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-DATABASE.html#REFRN30047
-
 
