@@ -1,0 +1,25 @@
+#=================================================================================#
+#                       CREATION OF A CDB IN ORACLE 19c                           #
+#=================================================================================#
+
+#---------------------------------------------------------------------------------#
+#                          CONTEXT & INITIAL SITUATION                            #
+#---------------------------------------------------------------------------------#
+
+We are following the references in the guide
+https://docs.oracle.com/en/database/oracle/oracle-database/19/multi/creating-and-configuring-a-multitenant-environment.html .
+
+First of all, we specify the hardware prerequisites of our Oracle Linux 8.10 VM and the directoy structure we created.
+To access our VM, we configured a NAT rule in VirtualBox so that our port 2222 redirects to the port 22 at our VM. We can 
+enter using
+
+~$ ssh -p 2222 oracle@localhost
+
+Our VM has:
+- 3052 MB RAM.
+- 3 CPUs.
+- 200 GB storage.
+
+The directory structure will be configured as follows:
+
+
